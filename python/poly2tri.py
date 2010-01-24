@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.6
-from framework import Game, draw_polygon, reset_zoom, draw_line, decompose_poly, make_ccw, Triangulator
+from framework import Game, draw_polygon, reset_zoom, draw_line, decompose_poly, make_ccw
+from seidel import *
 
 class Poly2Tri(Game):
 
@@ -111,7 +112,7 @@ class Poly2Tri(Game):
         
         # Load point set
         file_name = "../data/dude.dat"
-        self.points = self.load_points(file_name)
+        self.points = self.dude #self.load_points(file_name)
         
         # Triangulate
         t1 = self.time
@@ -125,8 +126,8 @@ class Poly2Tri(Game):
         print "time (ms) = %f  , num triangles = %d" % (dt, len(self.triangles))
         
         for p in self.dude:
-            p[0] -= 75
-        
+            p[0] -= 300
+          
         make_ccw(self.dude)
         self.decomp_poly = []
         t1 = self.time
@@ -140,7 +141,7 @@ class Poly2Tri(Game):
         pass
         
     def render(self):
-        reset_zoom(2.0, (300, 450), self.screen_size)
+        reset_zoom(2.0, (100, 350), self.screen_size)
         red = 255, 0, 0
         yellow = 255, 255, 0
         green = 0, 255, 0
@@ -149,18 +150,18 @@ class Poly2Tri(Game):
         
         for p in self.decomp_poly:
             draw_polygon(p, red)
-                
-        '''
+        
+        '''        
         for t in self.trapezoids:
             verts = self.trapezoids[t].vertices()
             #verts = t.vertices()
             draw_polygon(verts, yellow)
-        '''
+    
         for e in self.edges:
             p1 = e.p.x, e.p.y
             p2 = e.q.x, e.q.y
             draw_line(p1, p2, green)
-        
+        '''
         
     def load_points(self, file_name):
         infile = open(file_name, "r")

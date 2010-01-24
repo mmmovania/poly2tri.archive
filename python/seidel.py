@@ -39,7 +39,7 @@ from math import atan2
 ##
 
 # Shear transform. May effect numerical robustness
-SHEAR = 1e-6
+SHEAR = 1e-3
 
 class Point(object):
     
@@ -87,43 +87,30 @@ class Point(object):
     def clone(self):
         return Point(self.x, self.y)
 
+def orient2d(pa, pb, pc):
+    acx = pa.x - pc.x;
+    bcx = pb.x - pc.x;
+    acy = pa.y - pc.y;
+    bcy = pb.y - pc.y;
+    return acx * bcy - acy * bcx;
+    
 class Edge(object):
     
     def __init__(self, p, q):
         self.p = p
         self.q = q
-        self.slope = (q.y - p.y) / (q.x - p.x)
+        self.slope = (q.y - p.y) / (q.x - p.x) if q.x - p.x != 0 else 0
         self.b = p.y - (p.x * self.slope)
         self.above, self.below = None, None
         self.mpoints = []
         self.mpoints.append(p)
         self.mpoints.append(q)
     
-    ##
-    ## NOTE Rounding accuracy significantly effects numerical robustness!!!
-    ##
-    
     def is_above(self, point):
-        return (round(point.y, 2) < round(self.slope * point.x + self.b, 2))
+        return orient2d(self.p, self.q, point) < 0
         
     def is_below(self, point):
-        return (round(point.y, 2) > round(self.slope * point.x + self.b, 2))
-
-    def intersect(self, c, d):
-        a = self.p
-        b = self.q
-        a1 = self.signed_area(a, b, d)
-        a2 = self.signed_area(a, b, c)
-        if  a1 != 0.0 and a2 != 0.0 and (a1 * a2) < 0.0:
-            a3 = self.signed_area(c, d, a)
-            a4 = a3 + a2 - a1
-            if a3 * a4 < 0.0:
-                t = a3 / (a3 - a4)
-                return a + ((b - a) * t)
-        return 0.0
-        
-    def signed_area(self, a, b, c):
-        return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
+        return orient2d(self.p, self.q, point) > 0
         
 class Trapezoid(object):
         
