@@ -93,7 +93,7 @@ def orient2d(pa, pb, pc):
     acy = pa.y - pc.y;
     bcy = pb.y - pc.y;
     return acx * bcy - acy * bcx;
-    
+
 class Edge(object):
     
     def __init__(self, p, q):
@@ -102,15 +102,18 @@ class Edge(object):
         self.slope = (q.y - p.y) / (q.x - p.x) if q.x - p.x != 0 else 0
         self.b = p.y - (p.x * self.slope)
         self.above, self.below = None, None
-        self.mpoints = []
-        self.mpoints.append(p)
-        self.mpoints.append(q)
+        self.mpoints = [p, q]
     
     def is_above(self, point):
         return orient2d(self.p, self.q, point) < 0
         
     def is_below(self, point):
         return orient2d(self.p, self.q, point) > 0
+        
+    def add_mpoint(self, point):
+        for mp in self.mpoints:
+            if not mp.neq(point): return
+        self.mpoints.append(point)
         
 class Trapezoid(object):
         
@@ -169,14 +172,25 @@ class Trapezoid(object):
         return v1, v2, v3, v4
   
     def add_points(self):
-        if self.left_point != self.bottom.p: 
-            self.bottom.mpoints.append(self.left_point.clone())
-        if self.right_point != self.bottom.q: 
-            self.bottom.mpoints.append(self.right_point.clone())
-        if self.left_point != self.top.p: 
-            self.top.mpoints.append(self.left_point.clone())
-        if self.right_point != self.top.q: 
-            self.top.mpoints.append(self.right_point.clone())
+        if self.left_point is not self.bottom.p: 
+            self.bottom.add_mpoint(self.left_point)
+        if self.right_point is not self.bottom.q: 
+            self.bottom.add_mpoint(self.right_point)
+        if self.left_point is not self.top.p: 
+            self.top.add_mpoint(self.left_point)
+        if self.right_point is not self.top.q: 
+            self.top.add_mpoint(self.right_point)
+        
+    def area(self):
+      p = list(self.vertices())
+      x0 = p[0][0]; y0 = p[0][1]
+      x1 = p[1][0]; y1 = p[1][1]
+      return 0.5 * abs(sum(x0*y1 - x1*y0
+                           for ((x0, y0), (x1, y1)) in self.segments(p)))
+
+    def segments(self, p):
+        return zip(p, p[1:] + [p[0]])
+
 
 def line_intersect(edge, x):
     y =  edge.slope * x + edge.b
@@ -246,7 +260,7 @@ class Triangulator(object):
             if t.inside:
                 self.trapezoids.append(t)
                 t.add_points()
-        
+               
         # Generate the triangles
         self.create_mountains()
 
@@ -258,7 +272,7 @@ class Triangulator(object):
   
     def create_mountains(self):
         for edge in self.edge_list:
-            if len(edge.mpoints) > 2:
+            if len(edge.mpoints) > 2:                 
                 mountain = MonotoneMountain()
                 points = merge_sort(edge.mpoints)
                 for p in points:
@@ -532,7 +546,7 @@ class MonotoneMountain:
         self.tail = None
         self.head = None
         self.positive = False
-        self.convex_points = []
+        self.convex_points = set()
         self.mono_poly = []
         self.triangles = []
         self.convex_polies = []
@@ -542,17 +556,15 @@ class MonotoneMountain:
             self.head = point
             self.size = 1
         elif self.size is 1:
-            if point.neq(self.head):
-                self.tail = point
-                self.tail.prev = self.head
-                self.head.next = self.tail
-                self.size = 2
+            self.tail = point
+            self.tail.prev = self.head
+            self.head.next = self.tail
+            self.size = 2
         else:
-            if point.neq(self.tail):
-                self.tail.next = point
-                point.prev = self.tail
-                self.tail = point
-                self.size += 1
+            self.tail.next = point
+            point.prev = self.tail
+            self.tail = point
+            self.size += 1
 
     def remove(self, point):
         next = point.next
@@ -565,18 +577,18 @@ class MonotoneMountain:
         self.positive = self.angle_sign()
         self.gen_mono_poly()
         p = self.head.next
-        while p != self.tail:
+        while p.neq(self.tail):
             a = self.angle(p)
             if a >= PI_SLOP or a <= -PI_SLOP or a == 0: 
                 self.remove(p)
             elif self.is_convex(p): 
-                self.convex_points.append(p)
+                self.convex_points.add(p)
             p = p.next
         self.triangulate()
 
     def triangulate(self):
         while self.convex_points:
-            ear = self.convex_points.pop(0)
+            ear = self.convex_points.pop()
             a = ear.prev
             b = ear
             c = ear.next
@@ -584,13 +596,13 @@ class MonotoneMountain:
             self.triangles.append(triangle)
             self.remove(ear)
             if self.valid(a): 
-                self.convex_points.append(a)
+                self.convex_points.add(a)
             if self.valid(c): 
-                self.convex_points.append(c)
+                self.convex_points.add(c)
         #assert self.size <= 3, "Triangulation bug, please report"
 
     def valid(self, p):
-        return p != self.head and p != self.tail and self.is_convex(p)
+        return p.neq(self.head) and p.neq(self.tail) and self.is_convex(p)
 
     def gen_mono_poly(self): 
         p = self.head

@@ -1,5 +1,5 @@
-#!/usr/bin/env python2.6
-from framework import Game, draw_polygon, reset_zoom, draw_line, decompose_poly, make_ccw
+#!/usr/bin/env python2.7
+from framework import Game, draw_polygon, reset_zoom, draw_line
 from seidel import *
 
 class Poly2Tri(Game):
@@ -107,12 +107,15 @@ class Poly2Tri(Game):
 		[336.0, 914.97839999999997], [336.0, 838.0], [274.0, 838.0], [212.0, 838.0], [212.0, 991.0], [212.0, 1144.0], 
 		[207.25, 1143.9864], [202.5, 1143.9727]]
 
+    test3 = [[-5, 5],[-3, 0],[-5, -5],[5, -5],[5, 5]]
+    test4 = [[5, 5],[5, -5],[-5, -5],[-3, 0],[-5, 5]]
+    
     def __init__(self):
         super(Poly2Tri, self).__init__(*self.screen_size)       
         
         # Load point set
-        file_name = "../data/dude.dat"
-        self.points = self.dude #self.load_points(file_name)
+        file_name = "../data/star.dat"
+        self.points = self.test3 #self.load_points(file_name) 
         
         # Triangulate
         t1 = self.time
@@ -120,43 +123,49 @@ class Poly2Tri(Game):
         dt = (self.time - t1) * 1000.0
         
         self.triangles = seidel.triangles()
-        #self.trapezoids = seidel.trapezoids
-        self.trapezoids = seidel.trapezoidal_map.map
+        self.trapezoids = seidel.trapezoids
+        #self.trapezoids = seidel.trapezoidal_map.map
         self.edges = seidel.edge_list
         print "time (ms) = %f  , num triangles = %d" % (dt, len(self.triangles))
         
         for p in self.dude:
             p[0] -= 300
           
+        '''
         make_ccw(self.dude)
         self.decomp_poly = []
         t1 = self.time
         decompose_poly(self.dude, self.decomp_poly)
         dt = (self.time - t1) * 1000.0
         print "time (ms) = %f  , num polies = %d" % (dt, len(self.decomp_poly))
-        
+        '''
+      
         self.main_loop()
         
     def update(self):
         pass
         
     def render(self):
-        reset_zoom(2.0, (100, 350), self.screen_size)
+    
+        reset_zoom(25, (0, 0), self.screen_size)
         red = 255, 0, 0
         yellow = 255, 255, 0
         green = 0, 255, 0
+        
         for t in self.triangles:
-            draw_polygon(t, red)
+          #t = self.triangles[0]
+          draw_polygon(t, red)
         
-        for p in self.decomp_poly:
-            draw_polygon(p, red)
+        #for p in self.decomp_poly:
+        #    draw_polygon(p, red)
         
-        '''        
+        '''
         for t in self.trapezoids:
-            verts = self.trapezoids[t].vertices()
-            #verts = t.vertices()
-            draw_polygon(verts, yellow)
-    
+          #t = self.trapezoids[0]
+          #verts = self.trapezoids[t].vertices()
+          verts = t.vertices()
+          draw_polygon(verts, yellow)
+           
         for e in self.edges:
             p1 = e.p.x, e.p.y
             p2 = e.q.x, e.q.y

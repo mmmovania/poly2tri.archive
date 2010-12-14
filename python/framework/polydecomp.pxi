@@ -116,7 +116,7 @@ cdef list intersection(list p1, list p2, list q1, list q2):
     bay = t*(q2[1]-q1[1]) + q1[1]
     return [bax, bay]
 
-cdef bool eq(float a, float b):
+cdef bint eq(float a, float b):
     return abs(a - b) <= 1e-8
 
 cdef list at(list v, int i):
@@ -125,25 +125,25 @@ cdef list at(list v, int i):
 cdef float area(list a, list b, list c):
     return (((b[0] - a[0])*(c[1] - a[1]))-((c[0] - a[0])*(b[1] - a[1])))
 
-cdef bool left(list a, list b, list c):
+cdef bint left(list a, list b, list c):
     cdef double *x = [a[0], a[1]]
     cdef double *y = [b[0], b[1]]
     cdef double *z = [c[0], c[1]]
     return orient2d(x, y, z) > 0.0
 
-cdef bool leftOn(list a, list b, list c):
+cdef bint leftOn(list a, list b, list c):
     cdef double *x = [a[0], a[1]]
     cdef double *y = [b[0], b[1]]
     cdef double *z = [c[0], c[1]]
     return orient2d(x, y, z) >= 0.0
 
-cdef bool right(list a, list b, list c):
+cdef bint right(list a, list b, list c):
     cdef double *x = [a[0], a[1]]
     cdef double *y = [b[0], b[1]]
     cdef double *z = [c[0], c[1]]
     return orient2d(x, y, z) < 0.0
 
-cdef bool rightOn(list a, list b, list c):
+cdef bint rightOn(list a, list b, list c):
     cdef double *x = [a[0], a[1]]
     cdef double *y = [b[0], b[1]]
     cdef double *z = [c[0], c[1]]
@@ -154,5 +154,5 @@ cdef float sqdist(list a, list b):
     cdef float dy = b[1] - a[1]
     return dx * dx + dy * dy
     
-cdef bool is_reflex(list poly, int i):
+cdef bint is_reflex(list poly, int i):
     return right(at(poly, i - 1), at(poly, i), at(poly, i + 1))

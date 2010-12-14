@@ -5,11 +5,12 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
-# Usage: python setup.py build_ext --i
+# Usage: python setup.py build_ext -i
 
 version = '0.1'
 
-sourcefiles = ['framework/framework.pyx', 'framework/predicates.c']
+#sourcefiles = ['framework/framework.pyx', 'framework/predicates.c']
+sourcefiles = ['framework/framework.pyx']
 
 # Platform-dependent submodules
 
