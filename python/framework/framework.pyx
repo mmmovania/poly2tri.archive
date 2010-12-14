@@ -4,8 +4,8 @@
 from math import pi as PI
 
 from gl cimport *
-include "polydecomp.pxi"
-include "seidel.pxi"
+#include "polydecomp.pxi"
+#include "seidel.pxi"
 
 cdef extern from 'math.h':
     double cos(double)
@@ -60,7 +60,7 @@ def draw_line(p1, p2, color):
     glVertex2f(p1[0], p1[1])
     glVertex2f(p2[0], p2[1])
     glEnd()
-       
+
 ##
 ## Game engine / main loop / UI
 ##
@@ -134,3 +134,4 @@ cdef class Game:
     property time:
         def __get__(self): return glfwGetTime()
         def __set__(self, t): glfwSetTime(t)
+ 
